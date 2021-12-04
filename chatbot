@@ -1,0 +1,62 @@
+import re
+import long_responses as long
+
+def message_probability(user_message,recognised_words,single_response=False,required_words=[]):
+    message_certanity = 0
+    has_required_words = True
+    
+    #counts how many words are present in each predefined message.
+    for word in user_message:
+        if word in recognised_words:
+            message_certanity += 1
+            
+    #calculate the percent of recognised words in auser message
+    percentage = float(message_certanity)/ float(len(recognised_words))
+    
+    #checks that the required words are in the string.
+    for word in required_words:
+        if word not in user_message:
+            has_required_words = False
+            break
+    
+    if has_required_words or single_response:
+        return int(percentage*100)
+    else:
+        return 0
+    
+def check_all_messages(message):
+    highest_prob_list = {}
+    #simplifies response creation/ add to dictionary.
+    def response(bot_response, list_of_words, single_response= False, required_words=[]): #adding item to dictionary.
+        nonlocal highest_prob_list
+        highest_prob_list[bot_response]= message_probability(message,list_of_words,single_response,required_words)
+    
+    #responses----------------------------------------------------------------------------------------------------------------------------------
+    response('Hello!',['hello','hi','sup','hey','heyo'], single_response=True) #reply and the list of words which can generate that reply and its a singlr response.
+    response('I\'m doing fine, and you?', ['how','are','you','doing'], required_words=['how']) #reply and list of words which can generate the reply and required words is necessary only then will the following reply will get generated.
+    response('Thank You, so nice of you!',['i','love','your','work'], required_words=['love','work']) #reply and the list of words which can generate that reply and its a singlr response.
+    response('oh my gawddd, you too?!',['french fries','cats','love'], required_words=['love']) #reply and the list of words which can generate that reply and its a singlr response.
+    response('PERIODDDDDDDDDD',['hate', 'fruits'], required_words=['fruits']) #reply and the list of words which can generate that word.
+    
+    #longer responses
+    response(long.R_ADVICE, ['give','advice'], required_words=['advice'])
+    response(long.R_ADVICE, ['what','you','eat'], required_words=['you','eat'])
+    
+    
+    
+    best_match = max(highest_prob_list, key=highest_prob_list.get)
+    #print(highest_prob_list)
+    
+    return long.unknown() if highest_prob_list[best_match] < 1 else best_match
+           
+           
+# used to get response
+def get_response(user_input):
+    split_message = re.split(r'\s+|[,;?!.-]\s*', user_input.lower()) #splits the message and make it clean of all the symbols and convert it to lower case.
+    response = check_all_messages(split_message) # function to get response.
+    return response
+                 
+#testing the response system
+while True: #infinte while loop to get as many requests
+    print('Bot: '+ get_response(input('You: ')))
+    
